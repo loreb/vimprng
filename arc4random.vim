@@ -61,7 +61,6 @@ let s:rs.s = range(256)
 let s:rs.i = 0
 let s:rs.j = 0
 
-let s:randomdevice = ''
 function! s:getrandomdevice()
     for dev in ["/dev/arandom", "/dev/urandom", "/dev/random"]
         if getftime(dev) < 0
@@ -71,23 +70,64 @@ function! s:getrandomdevice()
     endfor
     throw '/dev/urandom?'
 endfunction
-" Small integers, not characters!
-function! s:devurandom(numbytes)
-    if len(s:randomdevice) < 1
-        let s:randomdevice = s:getrandomdevice()
+let s:randomdevice = s:getrandomdevice()
+
+" This is copypasta from devurandom.vim {{{
+" REPETITA IVVANT: see how readfile() treats NULs and newlines.
+function! s:kludge(b0, b1)
+    " This relies on the fact that (255*255)%256 == 1
+    if a:b1 == 42
+        if a:b0 == a:b1
+            return -1
+        endif
+        return 0
     endif
-    let rv = []
-    while len(rv) < a:numbytes
+    return a:b0
+endfunction
+
+let s:buf = {}
+let s:buf.bytes = []
+let s:buf.left  = 0
+function! s:fill()
+    let curr = -1
+    let prev = -1
+    let randbytes = []
+    while len(randbytes) < 1
         for line in readfile(s:randomdevice, 'b', 4)
             for i in range(len(line))
-                let rv += [ char2nr(line[i]) ]
+                let byte = char2nr(line[i])
+                if prev < 0
+                    let prev = byte
+                    continue
+                endif
+                let curr = byte
+                let randbyte = s:kludge(prev, curr)
+                let prev = -1
+                let curr = -1
+                if randbyte >= 0
+                    let randbytes += [ randbyte ]
+                endif
             endfor
         endfor
     endwhile
-    if a:numbytes <= 0
-        throw 'fubar'
+    let s:buf.bytes = randbytes
+    let s:buf.left  = len(randbytes)
+endfunction
+" }}}
+function! s:urandom_byte()
+    if s:buf.left < 1
+        call s:fill()
     endif
-    return rv[0 : a:numbytes-1]
+    let s:buf.left -= 1
+    return s:buf.bytes[s:buf.left]
+endfunction
+
+" Small integers, not characters!
+function! s:devurandom(numbytes)
+    let rv = []
+    while len(rv) < a:numbytes
+        let rv += [ s:urandom_byte() ]
+    endwhile
 endfunction
 let s:powerof2 = [ 1 ]
 while 1
