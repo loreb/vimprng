@@ -59,7 +59,10 @@ let s:description['LCG']     = 'fast LCG for reference in benchmarks'
 let s:description['OOPRNG']  = 'return obj.seed++'
 let s:description['Incf']    = 'return seed++'
 let s:description['xkcd221'] = 'Xkcd221 (in C)'
-for f in ['lcg', 'xkcd221']
+" FIXME some PRNGs have a 'state' parameter...
+for f in ['lcg', 'xkcd221'] +
+            \ [ 'Arc4random', 'Dev_urandom', 'Marsaglia', 'MT19337',
+            \ 'P9lrand', 'RandIsaac' ]
     " On my machine xkcd221 <2x faster than Xkcd221,
     " while LCG is 3x slower than lcg -- you get the idea.
     if exists('*' . f)
