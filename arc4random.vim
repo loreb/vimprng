@@ -173,7 +173,7 @@ endfunction
 
 function! s:arc4_stir_if_needed()
     if s:arc4_count <= 0 " || !rs_initialized || arc4_stir_pid != pid)
-        call s:arc4_stir();
+        call s:arc4_stir()
     endif
 endfunction
 
