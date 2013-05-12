@@ -1,8 +1,12 @@
-" George Marsaglia's favorite PRNG in vimscript.
+" George Marsaglia's favorite(*) PRNG in vimscript.
 "
 " Someday Debian Stable will finally ships a Vim in which exists('*and'),
-" thus making Wheezy my favorite Debian release.
+" thus making Wheezy my favorite Debian release
+" -- hey, it happened!
 " Tnx wikipedia for showing me this gem.
+"
+" (*) http://www.ciphersbyritter.com/NEWS4/RANDC.HTM
+" [A favorite stand-alone generator].
 
 function! s:shift16right(n)
     if a:n < 0
@@ -24,10 +28,7 @@ endfunction
 " This PRNG returns an uint32_t, ie a number in [0, 0xFFFFFFFF];
 " vim typically uses int32_t, meaning this can return negative numbers.
 if s:intmax(0x7fffffff)
-    " $ grep Hz /proc/cpuinfo
-    " cpu MHz         : 1800.000
-    " 100k calls in seven/eight seconds.
-    " 100k calls in 0.7 seconds if included in vim/src/eval.c
+    " 7x slower than Xkcd221()
     function! Marsaglia()
         let s:m_z = 36969 * and(s:m_z, 65535) + s:shift16right(s:m_z)
         let s:m_w = 18000 * and(s:m_w, 65535) + s:shift16right(s:m_w)
