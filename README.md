@@ -14,7 +14,7 @@ explaining vim's integers.
 
 Most of the generators assume that `exists('*xor')`; as of
 20130408, both mingw and Debian stable don't qualify.
-> UPDATE: Debian wheezy got released last week.
+> UPDATE(20130512): Debian wheezy got released last week.
 
 Some generators assume an int is exactly 32 bits and `:throw` otherwise.
 
