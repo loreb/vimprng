@@ -101,14 +101,9 @@ function! IBAA_seed(seed)
     let s:bb[0] = 0
     let s:numsleft = 0
     let m = copy(a:seed)
-    while s:notenoughbits(m)
-        for i in range(len(m))
-            let m[i] += i*i*i " better than 1, i, ...
-        endfor
-        for i in range(666)
-            call IBAA()
-        endfor
-    endwhile
+    if s:notenoughbits(m)
+        throw 'IBAA lost in zeroland'
+    endif
     let s:m = m
 endfunction
 

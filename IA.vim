@@ -61,14 +61,27 @@ endfunction
 " So we can just use /dev/urandom? No, because "Unlike RC4, the values in m
 " should contain at least 2ALPHA bits" -- unlike ISAAC, a seed with 256 zeroes
 " will just output 0... forever.
-function! s:notenoughbits(a)
-    " Counting #bits is expensive in vim => approx: nonzero == 1 bit set
-    let nonzero = 0
-    for n in a:a
-        if n != 0
-            let nonzero += 1
+function! s:countbits(n)
+    if a:n < 0
+        return 32 - s:countbits(-a:n - 1)
+    endif
+    let n = a:n
+    let nbits = 0
+    while n
+        if n%2
+            let nbits += 1
         endif
-        if nonzero >= 2 * s:ALPHA
+        let n = n / 2
+    endwhile
+    return nbits
+endfunction
+if s:countbits(-1) != 32 | throw '#bits' | endif
+if s:countbits(0xff) != 8 | throw '#bits' | endif
+function! s:notenoughbits(a)
+    let nbits = 0
+    for n in a:a
+        let nbits += s:countbits(n)
+        if nbits >= 2 * s:ALPHA
             return 0
         endif
     endfor
@@ -101,14 +114,10 @@ function! IA_seed(m, ...)
     let x.r = range(256) " will be overwritten
     let x.bb = bb
     let s:rng = x   " not seeded => E121 undefined variable
-    while s:notenoughbits(x.m)
-        for i in range(len(x.m))
-            let x.m[i] += i*i*i " better than 1, i, ...
-        endfor
-        for i in range(666)
-            call IA()
-        endfor
-    endwhile
+    if s:notenoughbits(x.m)
+        throw printf('IA needs at least %d bits set (%s)',
+                    \ 2 * s:ALPHA, string(x.m))
+    endif
     for i in range(warmup)
         call IA()
     endfor
