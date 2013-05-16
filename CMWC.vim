@@ -197,7 +197,7 @@ function! MWC_seed(x)
     call s:XMWC_seed(s:mwc.Q, a:x)
 endfunction
 
-function! s:seedarray(x, a, ...)
+function! s:seedarray(x, a, c)
     let a = a:a
     let q = repeat([0], a:x.r)
     for i in range(len(a))
@@ -207,10 +207,7 @@ function! s:seedarray(x, a, ...)
             let q[i % len(q)] += a[i]
         endif
     endfor
-    let c = a:x.c
-    if a:0 == 1
-        let c = a:1
-    endif
+    let c = a:c
     if c >= a:x.a
         throw printf('need carry < a (a=%d, c=%d)', a:x.a, c)
     endif
@@ -241,12 +238,12 @@ function! s:seedarray(x, a, ...)
     let a:x.Q = q
     let a:x.c = c
 endfunction
-function! CMWC_array(a)
-    call s:seedarray(s:cmwc, a:a)
+function! CMWC_array(a, ...)
+    call s:seedarray(s:cmwc, a:a, a:0 == 1? a:1 : s:cmwc.c)
 endfunction
 
-function! MWC_array(a)
-    call s:seedarray(s:mwc, a:a)
+function! MWC_array(a, ...)
+    call s:seedarray(s:mwc, a:a, a:0 == 1? a:1 : s:mwc.c)
 endfunction
 
 " "Magic values" because, well, as long as finding them requires
@@ -292,7 +289,7 @@ let s:magicvalues += [
             \ [4, 987654366],
             \ [4, 987654978],
             \ ]
-function! s:setparams(x, r, a, c)
+function! s:setparams(x, r, a)
     let magic = 0
     for ar in s:magicvalues
         if ar == [a:r, a:a]
@@ -309,7 +306,6 @@ function! s:setparams(x, r, a, c)
     let x = a:x
     let x.r = a:r
     let x.a = a:a
-    let x.c = a:c
     if len($DEBUG) > 0 && len(x.Q) != x.r
         echomsg printf('Q: %d => %d', len(x.Q), x.r)
     endif
@@ -331,11 +327,11 @@ endfunction
 " These are ~50x/100x slower than Xkcd221(), with no significant difference;
 " it's ~50x when a fits in a uint16, ~100x if it needs 32 bits
 " -- hence with the default config MWC() is 2x slower than CMWC()...
-function! CMWC_params(r, a, c)
-    call s:setparams(s:cmwc, a:r, a:a, a:c)
+function! CMWC_params(r, a)
+    call s:setparams(s:cmwc, a:r, a:a)
 endfunction
-function! MWC_params(r, a, c)
-    call s:setparams(s:mwc, a:r, a:a, a:c)
+function! MWC_params(r, a)
+    call s:setparams(s:mwc, a:r, a:a)
 endfunction
 
 function! s:uint32lt(x, y)
@@ -434,11 +430,11 @@ if len($DEBUG) > 0
                 \ 10000 : 1577604300,
                 \ }
     echo 'testing...'
-    call CMWC_params(4096, 18782, 123)
-    call CMWC_array(s:dbg_makeseed(4096))
+    call CMWC_params(4096, 18782)
+    call CMWC_array(s:dbg_makeseed(4096), 123)
     call s:test("CMWC", cmwc)
-    call MWC_params(1038, 611373678, 123)
-    call MWC_array(s:dbg_makeseed(1038))
+    call MWC_params(1038, 611373678)
+    call MWC_array(s:dbg_makeseed(1038), 123)
     call s:test("MWC", mwc)
     echomsg 'ok'
 endif
