@@ -249,7 +249,63 @@ function! MWC_array(a)
     call s:seedarray(s:mwc, a:a)
 endfunction
 
+" "Magic values" because, well, as long as finding them requires
+" months of CPU time, they might as well be magic.
+" XXX TODO FIXME is there a list of **all** known good values anywhere?
+let s:magicvalues = []
+" The examples in the paper
+let s:magicvalues += [
+            \ [4096, 18782],
+            \ [1038, 611373678],
+            \ ]
+" http://computer-programming-forum.com/47-c-language/2a86b422191d5bb1.htm
+let s:magicvalues += [
+            \ [512, 123554632 ],
+            \ [256, 8001634 ],
+            \ [128, 8007626   ],
+            \ [64, 647535442 ],
+            \ [32, 547416522 ],
+            \ [16, 487198574 ],
+            \ [8, 716514398 ],
+            \ [4096, 200047750],
+            \ ]
+" '''Here are a few good choices for r and a'''
+let s:magicvalues += [
+            \ [2048, 1030770],
+            \ [2048, 1047570],
+            \ [1024, 5555698],
+            \ [1024, 987769338],
+            \ [512, 123462658],
+            \ [512, 123484214],
+            \ [256, 987662290],
+            \ [256, 987665442],
+            \ [128, 987688302],
+            \ [128, 987689614],
+            \ [64, 987651206],
+            \ [64, 987657110],
+            \ [32, 987655670],
+            \ [32, 987655878],
+            \ [16, 987651178],
+            \ [16, 987651182],
+            \ [8, 987651386],
+            \ [8, 987651670],
+            \ [4, 987654366],
+            \ [4, 987654978],
+            \ ]
 function! s:setparams(x, r, a, c)
+    let magic = 0
+    for ar in s:magicvalues
+        if ar == [a:r, a:a]
+            let magic = 1
+            break
+        endif
+    endfor
+    if !magic
+        echomsg printf("magic(%s); more magic(a=%d, r=%d)?", string(s:magicvalues), a:a, a:r)
+        if a:r > 0xffff || a:r < 0
+            throw "methinks you swithced a<-->r"
+        endif
+    endif
     let x = a:x
     let x.r = a:r
     let x.a = a:a
@@ -263,7 +319,13 @@ function! s:setparams(x, r, a, c)
     while len(x.Q) > x.r
         call remove(x.Q, len(x.Q) - 1)
     endwhile
-    echoerr 'TODO check params validity'
+    " '''Numerous safeprimes of the form a*b^r - 1, b = 2^32 will
+    " be given in a separate article. The largest such is 3686175744b^1359 - 1
+    " so every possible sequence of 1058 successive 32-bit integers
+    " can be produced by the MWC RNG based on that prime.'''
+    " -- where is that 'separate article'? ACM?
+    "
+    " TODO http://mathforum.org/kb/message.jspa?messageID=445277
 endfunction
 
 " These are ~50x/100x slower than Xkcd221(), with no significant difference;
