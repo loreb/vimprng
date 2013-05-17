@@ -189,6 +189,7 @@ if s:bits() == 32
         return s:Q[0]
     endfunction
     let s:milliardth = 1809478889
+    let s:millionth  = 2251051864
     let s:first = [
                 \ 731790251,  2496544477, 4260112702, 446560973,
                 \ 1364216893, 3953018364, 1511295292, 1676480129
@@ -226,10 +227,17 @@ if len($DEBUG) > 0
             endfor
         endfor
         echomsg printf('#%d<1000 => %d secs total', i, localtime()-t0)
+        if x != s:millionth
+            throw printf("after 1e6: want %d, got %d", s:millionth, x)
+        endif
     endfor
-    echomsg printf("Does x = %d?\n     x = %d.\n", s:milliardth, s:x);
+    echomsg printf("Does x = %d?\n     x = %d.\n", s:milliardth, x);
+    if x != s:milliardth
+        throw 'SUPRBUG!'
+    endif
 endif
 unlet s:milliardth
+unlet s:millionth
 unlet s:first
 
 " This is especially beautiful in how it avoids using "bigger" integers
