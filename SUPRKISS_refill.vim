@@ -1,5 +1,6 @@
 
 " George Marsaglia's SUPERKISS, from
+" XXX this version if frozen; see the last commit msgs and SUPRKISS_usable.vim
 " http://compgroups.net/comp.lang.c/superkiss-for-32-and-64-bit-rngs-in-both-c-and-fo/325306 {{{
 
 " (His C code contains a stupid typo -- SUPRKISS64 is repeated twice).
