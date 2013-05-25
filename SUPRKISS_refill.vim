@@ -228,7 +228,7 @@ if len($DEBUG) > 0
             endfor
         endfor
         echomsg printf('#%d<1000 => %d secs total', i, localtime()-t0)
-        if x != s:millionth
+        if i == 0 && x != s:millionth
             throw printf("after 1e6: want %d, got %d", s:millionth, x)
         endif
     endfor
