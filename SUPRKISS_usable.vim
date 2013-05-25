@@ -127,6 +127,18 @@ function! s:bitwise_not(a)
   return -a:a - 1
 endfunction
 
+" '''
+" I offer here is a prime that provides CMWC RNGs for both
+" 32- and 64-bits, and for both C and Fortran, and with
+" equally massive periods, again greater than 2^(1.3million):
+"
+" p=640*b^41265+1 = 2748779069440*B^20632+1 = 5*2^1320487+1.
+"
+" In the above prime: a=640=2^9+2^7 for b=2^32 and
+"                     a=2748779069440=2^41+2^39 for B=2^64.
+"'''
+let s:maxcarry = str2nr("0 < carry < a")    " text after the nr is ignored
+
 function! s:bits()
     return 1 + len(s:powerof2)
 endfunction
@@ -137,6 +149,7 @@ if s:bits() == 32
     let s:xcng = 1236789
     let s:xs = 521288629
     let s:indx = 41265
+    let s:maxcarry = 640
 
     function! s:RS(n, offset)
         if a:offset >= len(s:powerof2)
@@ -195,6 +208,35 @@ else
     throw printf('does your computer have %d bits?', s:bits())
 endif
 
+" This takes a few seconds => won't call it automagically!
+function! SUPRKISS_srand(seedval, ...)
+    let c = s:carry
+    if a:0 != 0
+        let c = a:1
+        if c < 0 || c > s:maxcarry
+            throw printf('0 < carry < a; c=%d, max=%d', c, s:maxcarry)
+        endif
+    endif
+    let s:carry = c
+    let s:xcng = a:seedval
+    let s:xs   = a:seedval
+    for i in range(len(s:Q))
+        let s:Q[i] = s:CNG() + s:XS()
+    endfor
+endfunction
+
+function! SUPRKISS_seed(array, ...)
+    " In case of a short array...
+    call SUPRKISS_srand(a:array[0], a:0 == 0 ? s:carry : a:1)
+    for i in range(len(a:array))
+        if i < len(s:Q)
+            let s:Q[i] = a:array[i]
+        else
+            let s:Q[i] += s:array[i]
+        endif
+    endfor
+endfunction
+
 " https://en.wikipedia.org/wiki/1,000,000,000 says "billion" is supposed
 " to mean 10^9 unambiguously -- I'm paranoid
 if len($DEBUG) > 0
@@ -235,4 +277,3 @@ unlet s:milliardth
 unlet s:millionth
 unlet s:first
 
-echoerr 'TODO provide srand()'
