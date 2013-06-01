@@ -124,35 +124,37 @@ function! s:random_fill(state)
 endfunction
 
 " You can give a seed or two if you wish:
-"   let PRNG0 = RANDOM_new()
-"   let PRNG1 = RANDOM_new(          localtime())
-"   let PRNG2 = RANDOM_new(getpid(), localtime())
-" XXX iiuc djb only uses random_in[2,3] because they jump a longer distance
+"   RANDOM_seed()
+"   RANDOM_seed(          localtime())
+"   RANDOM_seed(getpid(), localtime())
+" XXX djb only uses random_in[2,3] because they jump a longer distance
 "  -- one could also use random_in[0,1]
-function! RANDOM_new(...)
+function! RANDOM_seed(...)
     let random_in = [0,0,0,0]
-    if a:0 == 1
-        let random_in[2] = a:1
-    elseif a:0 == 2
-        let random_in[2] = a:1
-        let random_in[3] = a:2
-    elseif a:0 > 2
-        throw 'too many arguments, try 0/1/2'
+    if a:0 > 4
+        throw '$# > 4'
+    endif
+    if a:0 == 0
+        let random_in[2] = getpid()
+        let random_in[3] = localtime()
+    else    " one seed => random_in[3]
+        for i in range(len(a:000))
+            let random_in[3-i] = a:000[i]
+        endfor
     endif
     let prng = {}
     let prng.in = random_in
     let prng.t = repeat([0], 16)
     let prng.pos = 0
-    return prng
+    let s:prng = prng
 endfunction
 
-" 1800 MHz, single cpu => 10k calls in ~4 seconds!
-function! RANDOM(state)
-    if a:state.pos > 0
-        let a:state.pos -= 1
-        return a:state.t[a:state.pos]
+function! RANDOM()
+    if s:prng.pos > 0
+        let s:prng.pos -= 1
+        return s:prng.t[s:prng.pos]
     endif
-    return s:random_fill(a:state)
+    return s:random_fill(s:prng)
 endfunction
 
 if len($DEBUG) > 0
@@ -169,15 +171,16 @@ if len($DEBUG) > 0
                 \ 1122145413, 1637054897, 2757387850, 227111478,
                 \ 3853466287, 364384882, 2116932039, 532721731,
                 \ ]
-    let rng = RANDOM_new(0,0)
+    call RANDOM_seed(0,0)
     for i in range(len(expected))
-        let got = RANDOM(rng)
+        let got = RANDOM()
         if got == expected[i]
             continue
         endif
         echoerr printf("%d RANDOM.c says %d, .vim %d", i, expected[i], got)
     endfor
-    unlet rng expected
+    unlet expected
     echomsg "tested ok"
+else
+    call RANDOM_seed()
 endif
-

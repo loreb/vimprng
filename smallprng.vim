@@ -52,7 +52,7 @@ if s:INT32_MAX > 0 && s:INT32_MAX+1 < 0
         let b = s:rightshift(a:x, 32 - a:k)
         return or(a, b)
     endfunction
-    function Ranval(x)
+    function s:ranval(x)
         " 10k in ~2 seconds!
         " $ grep Hz /proc/cpuinfo
         " cpu MHz		: 1800.000
@@ -104,7 +104,7 @@ elseif s:INT64_MAX > 0 && s:INT64_MAX+1 < 0 " 64 bits
         let b = s:rightshift(a:x, 64 - a:k)
         return or(a, b)
     endfunction
-    function! Ranval(x)
+    function! s:ranval(x)
         " 64 bits, untested
         let x = a:x
         let e = x.a - s:rot(x.b, 7)
@@ -138,11 +138,25 @@ lockvar s:NSB       " paranoia(2)
 
 " seed with raninit(), or there are cycles of length 1!
 " XXX one of them is obvious XD
-function Raninit(seed)
+function! Raninit(seed)
     let x = {}
     let x.a = 0 | let x.b = 0 | let x.c = 0 | let x.d = 0
     call s:raninit(x, a:seed)
     return x
+endfunction
+
+function! Ransetprng(prng)
+    let s:x = a:prng
+endfunction
+
+function! Ranval(...)
+    if a:0 == 0
+        return s:ranval(s:x)
+    endif
+    if a:0 == 1
+        return s:ranval(a:1)
+    endif
+    throw '$#'
 endfunction
 
 if len($DEBUG) > 0
@@ -159,3 +173,5 @@ if len($DEBUG) > 0
     unlet i prng
 endif
 unlet s:testseed s:expected
+call Ransetprng(Raninit(localtime()))
+
