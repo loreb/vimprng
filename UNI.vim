@@ -7,6 +7,8 @@
 " I tried reimplementing it in C
 " ==> taking 3 bytes per number passes the first 666 seconds of dieharder
 " ==> it is ~6x slower than [c]mwc
+" ... which is funny, because in vim it's actually much faster instead.
+" Even better -- it's one of the fastest PRNGs.
 
 let s:u = repeat([0.0], 97)
 let s:IP = 1234
@@ -126,7 +128,7 @@ function! UNISeed2(x, y)
     let I = s:ijk(I)
     let J = s:ijk(J)
     let K = s:ijk(K)
-    if I == 1 && j == 1 && K == 1
+    if I == 1 && J == 1 && K == 1
         echoerr 'I=J=K=1...'
         let J = 42
     endif
