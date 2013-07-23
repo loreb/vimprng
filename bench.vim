@@ -63,7 +63,8 @@ let s:description['xkcd221'] = 'Xkcd221 (in C)'
 for f in ['lcg', 'xkcd221'] +
             \ [ 'Arc4random', 'Dev_urandom', 'Marsaglia', 'MT19337',
             \ 'P9lrand', 'RandIsaac', 'KISS', 'OR5rand', 'IA', 'IBAA',
-            \ 'CMWC', 'MWC', 'RANDOM', 'Ranval', 'UNIRand', 'Xorshift'
+            \ 'CMWC', 'MWC', 'RANDOM', 'Ranval', 'UNIRand', 'Xorshift',
+            \ 'MonoRand'
             \ ]
     " On my machine xkcd221 <2x faster than Xkcd221,
     " while LCG is 3x slower than lcg -- you get the idea.
