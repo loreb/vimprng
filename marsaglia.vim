@@ -52,6 +52,13 @@ function! MarsagliaSeed(w,z)
     if w == 0 || z == 0
         throw printf("(m_w=%d, m_z=%d) can't have any zeroes!", a:w, a:z)
     endif
+    " These are because the algorithm is a MWC; it's kinda fun that
+    " even Marsaglia himself forgot to mention them.
+    " See the mwc paper for an explanation -- really, it's
+    " incredibly clear!
+    if w == 0x464fffff || z == 0x9068ffff
+        throw printf("MWC(b-1; a-1): m_w=0x%x, m_z=0x%x", a:w, a:z)
+    endif
     let s:m_w = w
     let s:m_z = z
 endfunction
@@ -95,10 +102,15 @@ let s:m_w = localtime() + 0x10000*getpid()
 " On 64-bit systems, pid_max can be set to any value up to 2^22
 " (PID_MAX_LIMIT, approximately 4 million).
 let s:m_z = s:hash(hostname() . string(v:oldfiles) . getline("."))
-if s:m_w == 0
-    let s:m_w = 0x86BE1074  " from /dev/urandom
-endif
-if s:m_z == 0
-    let s:m_z = 0x4376D02F  " from /dev/urandom
-endif
+while 1
+    let s:m_w += 1
+    let s:m_z += 1
+    if s:m_w == 18000 * and(s:m_w, 65535) + s:shift16right(s:m_w)
+        continue
+    endif
+    if s:m_z == 36969 * and(s:m_z, 65535) + s:shift16right(s:m_z)
+        continue
+    endif
+    break
+endwhile
 
