@@ -143,8 +143,17 @@ function! s:bits()
     return 1 + len(s:powerof2)
 endfunction
 
+function! KK(n)
+    return s:kludge_state(a:n)
+endfunction
+function! s:kludge_state(nelems)
+    " SUPRKISS_srand() takes __seconds__, need something reasonably fast;
+    " can't range() stepping by getpid(), it would stop too early.
+    return map(range(a:nelems), 'getpid() + (3+v:key) * localtime()')
+endfunction
+
 if s:bits() == 32
-    let s:Q = repeat([0], 41265)
+    let s:Q = s:kludge_state(41265)
     let s:carry = 362
     let s:xcng = 1236789
     let s:xs = 521288629
