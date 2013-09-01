@@ -122,6 +122,7 @@ function! DnsRandom()
         " XXX This looks like a shortcut by djb: he assumes that s:in[]
         " XXX will not need to be incremented beyond s:in[3],
         " XXX ie we will not surf() more than 2^128 times.
+        " -- or maybe it's just a relic from djbRANDOM.vim?
         "if (!++s:in[0]) if (!++s:in[1]) if (!++s:in[2]) ++s:in[3];
         for i in range(12)
             let s:in[i] += 1
@@ -422,6 +423,7 @@ else
     let V = string(getpid()) . string(v:) . string(b:) . reltimestr(reltime())
     let b = range(128)
     for i in range(len(V))
+        let b[i % 128] = 9 * b[i % 128]
         let b[i % 128] += char2nr(V[i])
     endfor
     for i in range(128)
