@@ -3,9 +3,14 @@
 " immune to Gaussian elimination, IBAA was required to have no detectable bias
 " for the entire cycle length. Short cycles must be very rare.
 
-" {{{ bitwise shifts; check 32 bits.
+" bitwise shifts; check 32 bits.
 if 0x7fffffff <= 0 || 0x7fffffff+1 >= 0
-    throw "this algorithm is for 32 bit machines"
+    throw "this algorithm is for 32 bit machines -- you'll need IBAA64"
+    " Notice that someone extended it to 64 bits and added a counter
+    " (like isaac) to work even with all zeroes; see
+    " http://www.leopard.uk.com/IBAA64/IBAA64.h
+    " http://bugs.dragonflybsd.org/issues/1689
+    " -- btw, Dragonfly BSD uses IBAA, I didn't know it!
 endif
 let s:p2 = [1]
 for i in range(30)
@@ -24,7 +29,7 @@ function! s:rshift(x, nbits)
     endif
     return a:x / s:p2[a:nbits]
 endfunction
-" }}}
+
 
 let s:ALPHA = 8
 let IBAA_SIZE  = s:lshift(1, s:ALPHA)
@@ -63,9 +68,8 @@ endfunction
 " So we can just use /dev/urandom? Almost.
 " ISAAC has no bad seeds -- period.
 " IA needs ate least 16 bits set.
-" IBAA... dunno, [0]x256 makes it loop, but setting a single bit is ok
-" for as long as I had the patience to run the C implementation,
-" so I'll assume that all 0 is the only troublesome case.
+" IBAA... [0]x256 makes it loop; even the autohr doesn't know for sure
+" if it's the only loop, but probability is on our side -- see the website.
 function! s:notenoughbits(a)
     for n in a:a
         if n != 0
