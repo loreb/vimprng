@@ -1,6 +1,10 @@
 " http://www.openbsd.org/cgi-bin/cvsweb/~checkout~/src/lib/libc/crypt/arc4random.c?rev=1.23
 " /*	$OpenBSD: arc4random.c,v 1.23 2012/06/24 18:25:12 matthew Exp $	*/
 
+" UPDATE: OpenBSD replaces RC4 with ChaCha20
+" http://marc.info/?l=openbsd-cvs&m=138065251627052&w=2
+" -- nice since chacha/salsa are beautiful and were on my todo list XD
+
 " /*
 "  * Copyright (c) 1996, David Mazieres <dm@uun.org>
 "  * Copyright (c) 2008, Damien Miller <djm@openbsd.org>
