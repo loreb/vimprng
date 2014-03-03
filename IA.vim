@@ -5,9 +5,12 @@
 "    The code should be easy to memorize.
 "    It should be as fast as possible.
 
-" {{{ bitwise shifts; check 32 bits.
+" {{{ bitwise shifts.
 if 0x7fffffff <= 0 || 0x7fffffff+1 >= 0
-    throw "this algorithm is for 32 bit machines"
+    " Need to:
+    " 1. fix bitwise operations
+    " 2. fix test data (or report missing)
+    throw "TODO IA is actually ok for any wordsize >= 2*ALPHA bits!"
 endif
 let s:p2 = [1]
 for i in range(30)
@@ -50,43 +53,15 @@ function! s:ia(m, r, bb)
     endfor
     return b
 endfunction
-" '''
-" My default initialization routine is randinit() in rand.c. I haven't
-" discussed randinit(), I have less faith in it than in ISAAC. In this paper,
-" I've only discussed ISAAC once properly initialized, not how to properly
-" initialize it. It's properly initialized if nothing is known about its
-" internal state.
-" '''
+
+" XXX "Unlike RC4, the values in m should contain at least 2ALPHA bits":
 "
-" So we can just use /dev/urandom? No, because "Unlike RC4, the values in m
-" should contain at least 2ALPHA bits" -- unlike ISAAC, a seed with 256 zeroes
-" will just output 0... forever.
-function! s:countbits(n)
-    if a:n < 0
-        return 32 - s:countbits(-a:n - 1)
-    endif
-    let n = a:n
-    let nbits = 0
-    while n
-        if n%2
-            let nbits += 1
-        endif
-        let n = n / 2
-    endwhile
-    return nbits
-endfunction
-if s:countbits(-1) != 32 | throw '#bits' | endif
-if s:countbits(0xff) != 8 | throw '#bits' | endif
-function! s:notenoughbits(a)
-    let nbits = 0
-    for n in a:a
-        let nbits += s:countbits(n)
-        if nbits >= 2 * s:ALPHA
-            return 0
-        endif
-    endfor
-    return 1
-endfunction
+" This technically means that you should use at least uint16(**),
+" but in the past I misunderstood it to mean "the state shall have
+" at leat 2ALPHA bits set"; this requirement is because y>>ALPHA
+" must have enough bits to index an array with 1<<ALPHA elements.
+"
+" (**) misleading since his example uses uint32...
 
 function! IA()
     " This is ~10x slower than Xkcd221()
@@ -99,11 +74,32 @@ function! IA()
     return s:rng.r[s:rng.numsleft]
 endfunction
 
+" Initialization is a bit tricky, and **not** documented.
+" Because IA works using only addition of (last result, values in m[]),
+" at least one of (m[],bb) must be odd (cfr. lagged fibonacci).
+" This guarantees we never get into an "all even" state
+" --proof:
+"       we __trivially__ can't get out of an "all even" state by calling IA();
+"       but IA() is reversible, so after long enough we should get
+"       back to the (not "all even") initial state - QED.
+"       [We may still be stuck in a short cycle :]
+" A super-simple way to enforce this is to use an odd value for "bb".
+"
+" Notice also that IA() is **slow** at getting out of a mostly-zero state!!!
+" Try eg m=[0xFFFFFFFF, 0..0],b=0 and see for yourself...
+function s:all_even(A)
+    for n in a:A
+        if n % 2
+            return 0
+        endif
+    endfor
+    return 1
+endfunction
 function! IA_seed(m, ...)
     if len(a:m) != g:IA_SIZE
         throw printf("IA(m[%d]) - length should be %d", len(a:m), g:IA_SIZE)
     endif
-    let bb = 0
+    let bb = 0xabcd " any odd value
     let warmup = 0
     if a:0 == 1 " a:0 is # of optional arguments
         let warmup = a:1
@@ -113,23 +109,28 @@ function! IA_seed(m, ...)
     let x.m = copy(a:m)
     let x.r = range(256) " will be overwritten
     let x.bb = bb
-    let s:rng = x   " not seeded => E121 undefined variable
-    if s:notenoughbits(x.m)
-        throw printf('IA needs at least %d bits set (%s)',
-                    \ 2 * s:ALPHA, string(x.m))
+    if s:all_even(x.m + [x.bb])
+        throw "IA([all even]) => [all even]"
     endif
+    let s:rng = x   " not seeded => E121 undefined variable
+    " "warmup" is measured in rounds, not numbers skipped.
     for i in range(warmup)
-        call IA()
+        for j in range(g:IA_SIZE):
+            call IA()
+        endfor
     endfor
 endfunction
+
+" TODO IA_srand()
 
 if len($DEBUG) > 0
     echomsg 'testing IA()...'
     let seed = range(256)
     call IA_seed(seed)
-    let warmup = 12345
-    echomsg printf("warmup %d rounds...", warmup)
-    for i in range(warmup)
+    let s:rng.bb = 0
+    let toskip = 12345
+    echomsg printf("skip %d numbers...", toskip)
+    for i in range(toskip)
         call IA()
     endfor
     " test data {{{
@@ -371,7 +372,7 @@ if len($DEBUG) > 0
         throw printf('IA#%d: wanted %d, got %d', i, expected, actual)
     endfor
     echomsg printf('ok (%d samples)', len(wanted))
-    unlet warmup
+    unlet toskip
     unlet wanted
     unlet seed
 endif
