@@ -63,6 +63,9 @@ endfunction
 "
 " (**) misleading since his example uses uint32...
 
+" XXX The comment "/* Memory: array of SIZE ALPHA-bit terms */"
+" seems to suggest a terrifying idea... whatever, even if it is,
+" IA() works perfectly fine generating integers >= 2ALPHA bits.
 function! IA()
     " This is ~10x slower than Xkcd221()
     if 0 == s:rng.numsleft
