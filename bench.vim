@@ -61,10 +61,10 @@ let s:description['Incf']    = 'return seed++'
 let s:description['xkcd221'] = 'Xkcd221 (in C)'
 " FIXME some PRNGs have a 'state' parameter...
 for f in ['lcg', 'xkcd221'] +
-            \ [ 'Arc4random', 'Dev_urandom', 'Marsaglia', 'MT19337',
-            \ 'P9lrand', 'RandIsaac', 'KISS', 'OR5rand', 'IA', 'IBAA',
-            \ 'CMWC', 'MWC', 'RANDOM', 'Ranval', 'UNIRand', 'Xorshift',
-            \ 'MonoRand', 'LFIB4', 'SWB'
+            \ [ 'Arc4random', 'CHACHA_i32', 'Dev_urandom', 'Marsaglia',
+            \ 'MT19337', 'P9lrand', 'RandIsaac', 'KISS', 'OR5rand',
+            \ 'IA', 'IBAA', 'CMWC', 'MWC', 'RANDOM', 'Ranval', 'UNIRand',
+            \ 'Xorshift', 'MonoRand', 'LFIB4', 'SWB'
             \ ]
     " On my machine xkcd221 <2x faster than Xkcd221,
     " while LCG is 3x slower than lcg -- you get the idea.
