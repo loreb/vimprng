@@ -66,10 +66,12 @@ endfunction
 " '''
 "
 " So we can just use /dev/urandom? Almost.
+" IA (old comment deleted).
 " ISAAC has no bad seeds -- period.
-" IA needs ate least 16 bits set.
 " IBAA... [0]x256 makes it loop; even the autohr doesn't know for sure
 " if it's the only loop, but probability is on our side -- see the website.
+" IBAA64 uses the counter trick by default.
+" Note how much faster IBAA is than IA at recovering from too many 0!
 function! s:notenoughbits(a)
     for n in a:a
         if n != 0
