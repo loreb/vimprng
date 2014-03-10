@@ -64,7 +64,7 @@ for f in ['lcg', 'xkcd221'] +
             \ [ 'Arc4random', 'CHACHA_i32', 'Dev_urandom', 'Marsaglia',
             \ 'MT19337', 'P9lrand', 'RandIsaac', 'KISS', 'OR5rand',
             \ 'IA', 'IBAA', 'CMWC', 'MWC', 'RANDOM', 'Ranval', 'UNIRand',
-            \ 'Xorshift', 'MonoRand', 'LFIB4', 'SWB'
+            \ 'Xorshift', 'MonoRand', 'LFIB4', 'SWB', 'SHA256'
             \ ]
     " On my machine xkcd221 <2x faster than Xkcd221,
     " while LCG is 3x slower than lcg -- you get the idea.
