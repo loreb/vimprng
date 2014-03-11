@@ -10,6 +10,7 @@
 " They are much more than invaluable, go and read them __now__!!!
 " (ChaCha is salsa's update; the paper assumes salsa)
 " OpenBSD switched arc4random to use chacha (20 rounds, optimized version).
+" http://www.openbsd.org/cgi-bin/cvsweb/src/sys/dev/rnd.c.diff?r1=1.144;r2=1.145
 
 " ======================= bits&bytes... ====================================
 
