@@ -102,7 +102,7 @@ function! IA_seed(m, ...)
     if len(a:m) != g:IA_SIZE
         throw printf("IA(m[%d]) - length should be %d", len(a:m), g:IA_SIZE)
     endif
-    let bb = 0xabcd " any odd value
+    let bb = 0x1a5eed   " any odd value
     let warmup = 0
     if a:0 == 1 " a:0 is # of optional arguments
         let warmup = a:1
@@ -118,13 +118,23 @@ function! IA_seed(m, ...)
     let s:rng = x   " not seeded => E121 undefined variable
     " "warmup" is measured in rounds, not numbers skipped.
     for i in range(warmup)
-        for j in range(g:IA_SIZE):
+        for j in range(g:IA_SIZE)
             call IA()
         endfor
     endfor
 endfunction
 
 " TODO IA_srand()
+if 1    " Ensure it is initialized; crappy, enough for pracrand (4GB,twice)
+    let m = range(g:IA_SIZE)
+    let m[0] = v:version
+    let m[1] = localtime()
+    let m[2] = getpid()
+    for i in range(3, g:IA_SIZE - 1)
+        let m[i] += m[i-2] * 0xabcd
+    endfor
+    call IA_seed(m, 3)
+endif
 
 if len($DEBUG) > 0
     echomsg 'testing IA()...'
