@@ -119,12 +119,12 @@ endfunction
 " thus making it the slowest PRNG of the bunch as of 20130802.
 function! DnsRandom()
     if s:outleft == 0
-        " XXX This looks like a shortcut by djb: he assumes that s:in[]
-        " XXX will not need to be incremented beyond s:in[3],
-        " XXX ie we will not surf() more than 2^128 times.
-        " -- or maybe it's just a relic from djbRANDOM.vim?
+        " I thought considering only the first four elements was
+        " a relic from djbRANDOM.vim, but assuming djb is not an idiot,
+        " it's more likely that he considered in[4:] as a sort of IV,
+        " only he didn't make it explicit in the API.
         "if (!++s:in[0]) if (!++s:in[1]) if (!++s:in[2]) ++s:in[3];
-        for i in range(12)
+        for i in range(4)
             let s:in[i] += 1
             if s:in[i] != 0
                 break
